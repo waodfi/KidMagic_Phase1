@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidMagic 第一阶段 — 硬件模拟器</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>🎮 KidMagic 第一阶段 — 硬件模拟器</h1>
+        <span class="state-badge" id="stateBadge">BOOTING</span>
+    </header>
+
+    <main>
+        <!-- 顶部：OLED + LED 灯带 -->
+        <section class="top-row">
+            <!-- OLED 显示屏 -->
+            <div class="panel oled-panel">
+                <div class="panel-title">📟 OLED 显示屏 (128×64)</div>
+                <div class="oled-frame">
+                    <canvas id="oledCanvas" width="512" height="256"></canvas>
+                </div>
+            </div>
+
+            <!-- WS2812B 灯带 -->
+            <div class="panel strip-panel">
+                <div class="panel-title">💡 WS2812B LED 灯带 ×8</div>
+                <div class="led-strip" id="ledStrip">
+                    <div class="ws-led" id="ws0"></div>
+                    <div class="ws-led" id="ws1"></div>
+                    <div class="ws-led" id="ws2"></div>
+                    <div class="ws-led" id="ws3"></div>
+                    <div class="ws-led" id="ws4"></div>
+                    <div class="ws-led" id="ws5"></div>
+                    <div class="ws-led" id="ws6"></div>
+                    <div class="ws-led" id="ws7"></div>
+                </div>
+
+                <!-- 按键指示灯 -->
+                <div class="panel-title" style="margin-top: 24px;">🔆 按键指示灯</div>
+                <div class="button-leds">
+                    <div class="btn-led-group">
+                        <div class="btn-led" id="btnLed0" data-color="green"></div>
+                        <span>START</span>
+                    </div>
+                    <div class="btn-led-group">
+                        <div class="btn-led" id="btnLed1" data-color="blue"></div>
+                        <span>PHOTO</span>
+                    </div>
+                    <div class="btn-led-group">
+                        <div class="btn-led" id="btnLed2" data-color="red"></div>
+                        <span>RECORD</span>
+                    </div>
+                    <div class="btn-led-group">
+                        <div class="btn-led" id="btnLed3" data-color="orange"></div>
+                        <span>GENERATE</span>
+                    </div>
+                    <div class="btn-led-group">
+                        <div class="btn-led" id="btnLed4" data-color="purple"></div>
+                        <span>PLAY</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 按键面板 -->
+        <section class="panel button-panel">
+            <div class="panel-title">🎛️ 交互按键 <span class="hint">（点击或使用键盘）</span></div>
+            <div class="buttons-row">
+                <button class="hw-btn hw-btn-start" id="btnStart" data-key="1 / S">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-label">启动</span>
+                </button>
+                <button class="hw-btn hw-btn-photo" id="btnPhoto" data-key="2 / D">
+                    <span class="btn-icon">📷</span>
+                    <span class="btn-label">拍照</span>
+                </button>
+                <button class="hw-btn hw-btn-record" id="btnRecord" data-key="3 / F">
+                    <span class="btn-icon">🎤</span>
+                    <span class="btn-label">录音</span>
+                    <kbd>3 / F (长按)</kbd>
+                </button>
+                <button class="hw-btn hw-btn-generate" id="btnGenerate" data-key="4 / G">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-label">生成</span>
+                </button>
+                <button class="hw-btn hw-btn-play" id="btnPlay" data-key="5 / H">
+                    <span class="btn-icon">🔊</span>
+                    <span class="btn-label">播放</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 底部：网络 + 串口 -->
+        <section class="bottom-row">
+            <!-- 网络控制 -->
+            <div class="panel network-panel">
+                <div class="panel-title">🌐 网络模拟控制 <span class="hint">（测试状态机行为）</span>
+                </div>
+                <div class="net-controls">
+                    <div class="net-row">
+                        <label>模拟 WiFi：</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" id="wifiOn">已连接</button>
+                            <button class="toggle-btn" id="wifiOff">已断开</button>
+                        </div>
+                    </div>
+                    <div class="net-row">
+                        <label>模拟延迟：</label>
+                        <input type="range" id="netDelay" min="200" max="5000" value="1000" step="100">
+                        <span id="netDelayVal">1000ms</span>
+                    </div>
+                    <div class="net-row">
+                        <label>模拟 HTTP：</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" id="httpOk">✅ 返回 200 OK</button>
+                            <button class="toggle-btn" id="httpFail">❌ 返回错误</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 串口监视器 -->
+            <div class="panel serial-panel">
+                <div class="panel-title">📟 串口监视器 (115200)
+                    <button class="toggle-btn" id="btnConnectSerial">🔌 连接 USB</button>
+                    <button class="clear-btn" id="serialClear">清除</button>
+                </div>
+                <pre id="serialOutput"></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>KidMagic 第一阶段模拟器 — 状态机逻辑移植自 ESP32-S3 固件 | 按键或点击按钮进行交互</p>
+    </footer>
+
+    <script src="simulator.js"></script>
+</body>
+
+</html>

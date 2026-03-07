@@ -1,0 +1,524 @@
+/* ============================================================================
+   KidMagic 第一阶段 — 硬件模拟器样式
+   ============================================================================ */
+
+:root {
+    --bg-primary: #0f121df0;
+    --bg-secondary: #181d2df0;
+    --bg-panel: #20273c;
+    --bg-panel-hover: #29324c;
+    --border: #384260;
+    --text-primary: #f2f5fa;
+    --text-secondary: #9ba5c4;
+    --text-muted: #5e6988;
+    --accent-green: #2ee685;
+    --accent-blue: #40c4ff;
+    --accent-red: #ff4757;
+    --accent-orange: #ff9f43;
+    --accent-purple: #c084fc;
+    --accent-cyan: #1dd1a1;
+    --glow-green: 0 0 16px rgba(46, 230, 133, 0.6);
+    --glow-blue: 0 0 16px rgba(64, 196, 255, 0.6);
+    --glow-red: 0 0 16px rgba(255, 71, 87, 0.6);
+    --glow-orange: 0 0 16px rgba(255, 159, 67, 0.6);
+    --glow-purple: 0 0 16px rgba(192, 132, 252, 0.6);
+    --radius: 16px;
+    --radius-sm: 10px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #171d2b 0%, #080a10 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* --- 页头 --- */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.state-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    letter-spacing: 1.5px;
+    transition: all 0.3s ease;
+}
+
+.state-badge.error {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+    border-color: rgba(248, 81, 73, 0.3);
+}
+
+.state-badge.busy {
+    background: rgba(240, 136, 62, 0.15);
+    color: var(--accent-orange);
+    border-color: rgba(240, 136, 62, 0.3);
+}
+
+.state-badge.recording {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+    border-color: rgba(248, 81, 73, 0.3);
+    animation: pulse-badge 1s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* --- 主布局 --- */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- 面板 --- */
+.panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.3s ease;
+}
+
+.panel:hover {
+    border-color: #444c56;
+}
+
+.panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-title .hint {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* --- 顶部行 --- */
+.top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* --- OLED 面板 --- */
+.oled-frame {
+    background: #000;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #1a1a2e;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+#oledCanvas {
+    width: 100%;
+    max-width: 512px;
+    height: auto;
+    image-rendering: pixelated;
+    border-radius: 4px;
+}
+
+/* --- WS2812B 灯带 --- */
+.led-strip {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px 0;
+}
+
+.ws-led {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    transition: background 0.05s, box-shadow 0.05s;
+}
+
+.ws-led.lit {
+    border-color: transparent;
+}
+
+/* --- 按键指示灯 --- */
+.button-leds {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+}
+
+.btn-led-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-led-group span {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.btn-led {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #222;
+    border: 2px solid #333;
+    transition: all 0.15s ease;
+}
+
+.btn-led.on[data-color="green"] {
+    background: var(--accent-green);
+    box-shadow: var(--glow-green);
+    border-color: transparent;
+}
+
+.btn-led.on[data-color="blue"] {
+    background: var(--accent-blue);
+    box-shadow: var(--glow-blue);
+    border-color: transparent;
+}
+
+.btn-led.on[data-color="red"] {
+    background: var(--accent-red);
+    box-shadow: var(--glow-red);
+    border-color: transparent;
+}
+
+.btn-led.on[data-color="orange"] {
+    background: var(--accent-orange);
+    box-shadow: var(--glow-orange);
+    border-color: transparent;
+}
+
+.btn-led.on[data-color="purple"] {
+    background: var(--accent-purple);
+    box-shadow: var(--glow-purple);
+    border-color: transparent;
+}
+
+/* --- 按键面板 --- */
+.button-panel {
+    background: linear-gradient(180deg, var(--bg-panel) 0%, #1a2235 100%);
+}
+
+.buttons-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.hw-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 130px;
+    height: 110px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+}
+
+.hw-btn:hover {
+    background: var(--bg-panel-hover);
+    transform: translateY(-2px);
+}
+
+.hw-btn:active,
+.hw-btn.pressed {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.hw-btn .btn-icon {
+    font-size: 24px;
+}
+
+.hw-btn .btn-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.hw-btn kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+
+/* 按键悬停/按下时的颜色 */
+.hw-btn-start:hover,
+.hw-btn-start.pressed {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 20px rgba(63, 185, 80, 0.2);
+}
+
+.hw-btn-photo:hover,
+.hw-btn-photo.pressed {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+}
+
+.hw-btn-record:hover,
+.hw-btn-record.pressed {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 20px rgba(248, 81, 73, 0.2);
+}
+
+.hw-btn-generate:hover,
+.hw-btn-generate.pressed {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
+}
+
+.hw-btn-play:hover,
+.hw-btn-play.pressed {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 20px rgba(188, 140, 255, 0.2);
+}
+
+/* --- 底部行 --- */
+.bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* --- 网络控制面板 --- */
+.net-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.net-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.net-row label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 120px;
+}
+
+.toggle-group {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+}
+
+.toggle-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--accent-green);
+}
+
+.toggle-btn:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
+#httpFail.active {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+}
+
+#wifiOff.active {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+}
+
+input[type="range"] {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    cursor: pointer;
+}
+
+#netDelayVal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-cyan);
+    min-width: 60px;
+    text-align: right;
+}
+
+/* --- 串口监视器 --- */
+.serial-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.clear-btn {
+    font-family: inherit;
+    font-size: 11px;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+    color: var(--text-secondary);
+    border-color: #444c56;
+}
+
+#serialOutput {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--accent-green);
+    background: #0a0e14;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    flex: 1;
+    border: 1px solid #1a1f2e;
+}
+
+#serialOutput::-webkit-scrollbar {
+    width: 6px;
+}
+
+#serialOutput::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#serialOutput::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+/* --- 页脚 --- */
+footer {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+}
+
+/* --- 响应式布局 --- */
+@media (max-width: 900px) {
+
+    .top-row,
+    .bottom-row {
+        grid-template-columns: 1fr;
+    }
+
+    .buttons-row {
+        gap: 10px;
+    }
+
+    .hw-btn {
+        width: 110px;
+        height: 95px;
+    }
+}
