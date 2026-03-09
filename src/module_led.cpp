@@ -41,8 +41,15 @@ static uint16_t animStep        = 0;
 void strip_init() {
     FastLED.addLeds<WS2812B, WS2812_PIN, GRB>(leds, WS2812_NUM);
     FastLED.setBrightness(WS2812_MAX_BRIGHTNESS);
+
+    // 启动诊断：全部亮白色 500ms，确认灯带硬件正常
+    fill_solid(leds, WS2812_NUM, CRGB::White);
+    FastLED.show();
+    delay(500);
+
     fill_solid(leds, WS2812_NUM, CRGB::Black);
     FastLED.show();
+    delay(50);
 }
 
 void strip_setAnimation(LedAnimation anim) {
