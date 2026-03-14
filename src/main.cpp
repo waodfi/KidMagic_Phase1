@@ -11,6 +11,7 @@
 #include "module_button.h"
 #include "module_led.h"
 #include "module_ui.h"
+#include "module_audio.h"
 
 // ---------------------------------------------------------------------------
 //  按键名称与对应资源映射表
@@ -38,6 +39,8 @@ static const char* lastAction   = "Ready";
 static bool        recording    = false;   // RECORD 按键保持状态
 static bool        oledDirty    = true;    // 标记是否需要刷新屏幕
 static uint32_t    oledTimer    = 0;
+static uint32_t    recordStartMs = 0;
+static uint32_t    recordLogTimer = 0;
 
 // 刷新 OLED：顶部标题 + 按键状态 + 最近操作
 static void refreshOled() {
@@ -107,6 +110,7 @@ void setup() {
     strip_init();
     buzzer_init();
     ui_init();
+    audio_init();
 
     // 开机自检：所有指示灯依次点亮
     Serial.println("[启动] 指示灯自检...");
@@ -138,6 +142,7 @@ void loop() {
     btn_update();
     strip_update();
     buzzer_update();
+    audio_update();
 
     // 2. 处理串口模拟输入
     processSerialInput();
@@ -162,8 +167,17 @@ void loop() {
 
             // RECORD 特殊处理：按下开始录音
             if (i == 2) {
-                recording = true;
-                lastAction = "Recording...";
+                if (audio_startRecording()) {
+                    recording = true;
+                    recordStartMs = millis();
+                    recordLogTimer = 0;
+                    lastAction = "Recording...";
+                    Serial.println("[录音] I2S 录音开始");
+                } else {
+                    recording = false;
+                    lastAction = "Rec init fail";
+                    Serial.println("[录音] 启动失败，请检查 I2S 接线");
+                }
             } else {
                 lastAction = m.name;
             }
@@ -177,11 +191,19 @@ void loop() {
 
             // RECORD 特殊处理：松开停止录音
             if (i == 2 && recording) {
+                audio_stopRecording();
                 recording = false;
                 buzzer_playTone(440, 60);
                 strip_setAnimation(ANIM_IDLE_BREATHE);
                 lastAction = "Rec stopped";
                 Serial.println("[按键] RECORD 录音停止");
+
+                uint32_t recMs = millis() - recordStartMs;
+                Serial.printf("[录音] 时长=%lums, 样本=%lu, 平均电平=%u%%, 峰值=%u\n",
+                    recMs,
+                    audio_getSampleCount(),
+                    audio_getAverageLevel(),
+                    audio_getPeakSample());
             }
 
             oledDirty = true;
@@ -191,6 +213,17 @@ void loop() {
         led_set(m.ledPin, btn_isHeld(m.btnPin));
     }
 
-    // 4. 刷新 OLED 显示
+    // 4. 录音过程中周期性输出实时电平
+    if (recording) {
+        uint32_t now = millis();
+        if (now - recordLogTimer >= 300) {
+            recordLogTimer = now;
+            Serial.printf("[录音] 实时电平=%u%%, 样本=%lu\n",
+                audio_getInstantLevel(),
+                audio_getSampleCount());
+        }
+    }
+
+    // 5. 刷新 OLED 显示
     refreshOled();
 }

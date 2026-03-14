@@ -18,8 +18,8 @@
 #define LED_START       8   // Green
 #define LED_PHOTO       9   // Blue
 #define LED_RECORD      10  // Red
-#define LED_GENERATE    11  // Orange
-#define LED_PLAY        12  // Purple
+#define LED_GENERATE    11  // Yellow
+#define LED_PLAY        12  // White
 
 // --- WS2812B 呼吸灯带 ----------------------------------------------------------
 #define WS2812_PIN      14
@@ -33,6 +33,20 @@
 // --- 蜂鸣器 (LEDC PWM) ------------------------------------------------------
 #define BUZZER_PIN      15
 #define BUZZER_CHANNEL  0
+
+// --- I2S 麦克风 (录音) ------------------------------------------------------
+// 接线: SCK -> GPIO35, WS -> GPIO36, SD -> GPIO37
+#define I2S_SCK_PIN         35
+#define I2S_WS_PIN          36
+#define I2S_SD_PIN          37
+
+// 通道选择: 0=左声道, 1=右声道
+// 若实时电平一直为 0，可先改成 1 再测试（很多 I2S 麦克风通过 L/R 引脚决定输出到左/右声道）
+#define I2S_MIC_USE_RIGHT   1
+
+#define AUDIO_SAMPLE_RATE   16000
+#define AUDIO_BITS          32
+#define AUDIO_DMA_BUF_LEN   256
 
 // --- WiFi 配置 -------------------------------------------------------------------
 #define WIFI_SSID       "YOUR_SSID"
